@@ -140,13 +140,30 @@ class SheetsService {
     }
 
     try {
-      final valueRange = sheets.ValueRange(values: [gasto.toSheetRow()]);
-      await _sheetsApi!.spreadsheets.values.append(
+      // Get current row count first
+      final getResponse = await _sheetsApi!.spreadsheets.values.get(
+        _spreadsheetId!,
+        'Gastos!A:A',
+      );
+      
+      final rowCount = getResponse.values?.length ?? 1;
+      final nextRow = rowCount + 1;
+      
+      debugPrint('Current row count: $rowCount, will append at row: $nextRow');
+      
+      final valueRange = sheets.ValueRange(
+        majorDimension: 'ROWS',
+        values: [gasto.toSheetRow()],
+      );
+      
+      await _sheetsApi!.spreadsheets.values.update(
         valueRange,
         _spreadsheetId!,
-        'Gastos',
+        'Gastos!A$nextRow',
         valueInputOption: 'USER_ENTERED',
       );
+      
+      debugPrint('Gasto added successfully at row $nextRow');
     } catch (e) {
       debugPrint('Error adding gasto: $e');
       rethrow;
@@ -158,21 +175,28 @@ class SheetsService {
       throw Exception('No autenticado');
     }
 
-    final response = await _sheetsApi!.spreadsheets.values.get(
-      _spreadsheetId!,
-      'Vencimientos!A2:H',
-    );
+    try {
+      final response = await _sheetsApi!.spreadsheets.values.get(
+        _spreadsheetId!,
+        'Vencimientos',
+      );
 
-    final vencimientos = <Vencimiento>[];
-    if (response.values != null) {
-      for (final row in response.values!) {
-        if (row.isNotEmpty && row[0].toString().isNotEmpty) {
-          vencimientos.add(Vencimiento.fromSheetRow(row));
+      final vencimientos = <Vencimiento>[];
+      if (response.values != null && response.values!.isNotEmpty) {
+        // Skip header row
+        for (int i = 1; i < response.values!.length; i++) {
+          final row = response.values![i];
+          if (row is List && row.isNotEmpty && row[0].toString().isNotEmpty) {
+            vencimientos.add(Vencimiento.fromSheetRow(row));
+          }
         }
       }
-    }
 
-    return vencimientos;
+      return vencimientos;
+    } catch (e) {
+      debugPrint('Error getting vencimientos: $e');
+      return [];
+    }
   }
 
   String _getMonthName(int month) {
