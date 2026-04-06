@@ -19,4 +19,16 @@ class MainActivity: FlutterActivity() {
             }
         }
     }
+    
+    override fun onResume() {
+        super.onResume()
+        val intent = intent
+        if (intent != null && intent.getStringExtra("ACTION") == "ADD_GASTO") {
+            setIntent(Intent()) // Clear the intent
+            flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+                val channel = MethodChannel(messenger, "com.fletar.fletar_app/widget")
+                channel.invokeMethod("openAddGasto", null)
+            }
+        }
+    }
 }

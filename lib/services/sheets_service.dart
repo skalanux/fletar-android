@@ -18,6 +18,7 @@ class SheetsService {
 
   bool get isAuthenticated => _sheetsApi != null;
   String? get spreadsheetUrl => _spreadsheetUrl;
+  String? get spreadsheetId => _spreadsheetId;
 
   Future<void> init(GoogleSignIn googleSignIn) async {
     _googleSignIn = googleSignIn;

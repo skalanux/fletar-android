@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import android.widget.Toast
 
 class HomeWidgetExampleProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -18,9 +17,9 @@ class HomeWidgetExampleProvider : AppWidgetProvider() {
             val total = prefs.getString("total_month", "$0")
             
             val views = RemoteViews(context.packageName, R.layout.fletar_widget)
-            views.setTextViewText(R.id.widget_total, "Total: $total")
+            views.setTextViewText(R.id.widget_total, total)
             
-            // Set pending intent for button
+            // Set pending intent for button - opens MainActivity with ADD_GASTO action
             val intent = Intent(context, MainActivity::class.java).apply {
                 putExtra("ACTION", "ADD_GASTO")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

@@ -8,6 +8,7 @@ import 'screens/gastos_screen.dart';
 import 'screens/estadisticas_screen.dart';
 import 'screens/vencimientos_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/home_screen.dart';
 import 'services/widget_service.dart';
 
 final openAddGastoProvider = StateProvider<bool>((ref) => false);
@@ -29,8 +30,12 @@ class _FletarAppState extends ConsumerState<FletarApp> {
   @override
   void initState() {
     super.initState();
-    ref.read(authStateProvider.notifier).init();
     _setupMethodChannel();
+    _initAuth();
+  }
+
+  Future<void> _initAuth() async {
+    await ref.read(authStateProvider.notifier).init();
   }
 
   void _setupMethodChannel() {
@@ -45,6 +50,14 @@ class _FletarAppState extends ConsumerState<FletarApp> {
   @override
   Widget build(BuildContext context) {
     final isAuthenticated = ref.watch(authStateProvider);
+    final shouldOpenAddGasto = ref.watch(openAddGastoProvider);
+
+    // Auto open add gasto when authenticated and widget triggers it
+    if (isAuthenticated && shouldOpenAddGasto) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showAddGastoSheet(context);
+      });
+    }
 
     return MaterialApp(
       title: 'Fletar',
@@ -57,6 +70,15 @@ class _FletarAppState extends ConsumerState<FletarApp> {
         '/settings': (context) => const SettingsScreen(),
         '/gastos': (context) => const GastosScreen(),
       },
+    );
+  }
+
+  void _showAddGastoSheet(BuildContext context) {
+    ref.read(openAddGastoProvider.notifier).state = false;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const AddGastoSheet(),
     );
   }
 }

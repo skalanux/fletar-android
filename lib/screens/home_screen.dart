@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/app_providers.dart';
 import '../models/gasto.dart';
 import '../services/widget_service.dart';
+import '../services/sheets_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -42,7 +43,8 @@ class HomeScreen extends ConsumerWidget {
         data: (gastos) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final total = gastos.fold(0.0, (sum, g) => sum + g.precio);
-            WidgetService.updateTotal(total);
+            final gs = ref.read(sheetsServiceProvider);
+            WidgetService.updateTotal(total, gs.spreadsheetId ?? '');
           });
           return _buildContent(context, ref, gastos, monthOffset);
         },
@@ -200,14 +202,24 @@ class AddGastoSheet extends ConsumerStatefulWidget {
 class _AddGastoSheetState extends ConsumerState<AddGastoSheet> {
   final _montoController = TextEditingController();
   final _detalleController = TextEditingController();
+  final _montoFocusNode = FocusNode();
   String? _categoria;
   String? _metodoPago;
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _montoFocusNode.requestFocus();
+    });
+  }
+
+  @override
   void dispose() {
     _montoController.dispose();
     _detalleController.dispose();
+    _montoFocusNode.dispose();
     super.dispose();
   }
 
@@ -258,6 +270,7 @@ class _AddGastoSheetState extends ConsumerState<AddGastoSheet> {
           const SizedBox(height: 16),
           TextField(
             controller: _montoController,
+            focusNode: _montoFocusNode,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Monto', prefixText: '\$ '),
           ),

@@ -8,8 +8,9 @@ class WidgetService {
     await HomeWidget.setAppGroupId(appGroupId);
   }
 
-  static Future<void> updateTotal(double total) async {
+  static Future<void> updateTotal(double total, String spreadsheetId) async {
     await HomeWidget.saveWidgetData('total_month', '\$${total.toStringAsFixed(2)}');
+    await HomeWidget.saveWidgetData('spreadsheet_id', spreadsheetId);
     await HomeWidget.updateWidget(
       androidName: androidWidgetName,
     );
