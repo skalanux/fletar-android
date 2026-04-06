@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_providers.dart';
 import '../models/gasto.dart';
+import '../services/widget_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -38,7 +39,13 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
         ),
-        data: (gastos) => _buildContent(context, ref, gastos, monthOffset),
+        data: (gastos) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final total = gastos.fold(0.0, (sum, g) => sum + g.precio);
+            WidgetService.updateTotal(total);
+          });
+          return _buildContent(context, ref, gastos, monthOffset);
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddGastoDialog(context, ref),

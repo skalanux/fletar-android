@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../providers/app_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -21,7 +22,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _loadSavedUrl() async {
+    await Future.delayed(const Duration(milliseconds: 500));
     final gs = ref.read(sheetsServiceProvider);
+    debugPrint('Login: URL cargada = ${gs.spreadsheetUrl}');
     if (gs.spreadsheetUrl != null) {
       _urlController.text = gs.spreadsheetUrl!;
     }

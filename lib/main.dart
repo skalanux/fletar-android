@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/app_providers.dart';
 import 'screens/login_screen.dart';
@@ -7,8 +8,13 @@ import 'screens/gastos_screen.dart';
 import 'screens/estadisticas_screen.dart';
 import 'screens/vencimientos_screen.dart';
 import 'screens/settings_screen.dart';
+import 'services/widget_service.dart';
 
-void main() {
+final openAddGastoProvider = StateProvider<bool>((ref) => false);
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await WidgetService.init();
   runApp(const ProviderScope(child: FletarApp()));
 }
 
@@ -24,6 +30,16 @@ class _FletarAppState extends ConsumerState<FletarApp> {
   void initState() {
     super.initState();
     ref.read(authStateProvider.notifier).init();
+    _setupMethodChannel();
+  }
+
+  void _setupMethodChannel() {
+    const channel = MethodChannel('com.fletar.fletar_app/widget');
+    channel.setMethodCallHandler((call) async {
+      if (call.method == 'openAddGasto') {
+        ref.read(openAddGastoProvider.notifier).state = true;
+      }
+    });
   }
 
   @override
@@ -51,6 +67,20 @@ class MainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final index = ref.watch(_navIndex);
+    final shouldOpenAddGasto = ref.watch(openAddGastoProvider);
+    
+    // Listen for widget trigger
+    ref.listen<bool>(openAddGastoProvider, (prev, next) {
+      if (next && context.mounted) {
+        ref.read(openAddGastoProvider.notifier).state = false;
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => const AddGastoSheet(),
+        );
+      }
+    });
+    
     return Scaffold(
       body: IndexedStack(
         index: index,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../providers/app_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -27,17 +28,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveUrl() async {
-    if (_urlController.text.isEmpty) return;
+    if (_urlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ingresa una URL')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
       final gs = ref.read(sheetsServiceProvider);
       await gs.setSpreadsheetUrl(_urlController.text.trim());
       ref.invalidate(configProvider);
+      ref.invalidate(gastosProvider(0));
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('URL guardada')),
+          const SnackBar(content: Text('URL guardada correctamente')),
         );
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (mounted) {

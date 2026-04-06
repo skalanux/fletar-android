@@ -23,8 +23,10 @@ class SheetsService {
     _googleSignIn = googleSignIn;
     final prefs = await SharedPreferences.getInstance();
     _spreadsheetUrl = prefs.getString('spreadsheet_url');
+    debugPrint('URL cargada desde SharedPreferences: $_spreadsheetUrl');
     if (_spreadsheetUrl != null) {
       _spreadsheetId = _extractSpreadsheetId(_spreadsheetUrl!);
+      debugPrint('Spreadsheet ID extraído: $_spreadsheetId');
     }
   }
 
@@ -42,6 +44,7 @@ class SheetsService {
     _spreadsheetId = _extractSpreadsheetId(url);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('spreadsheet_url', url);
+    debugPrint('URL guardada en SharedPreferences: $url');
   }
 
   String? _extractSpreadsheetId(String url) {
