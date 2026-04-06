@@ -39,6 +39,11 @@ class SheetsService {
     }
   }
 
+  Future<void> setAuthenticatedClient(Map<String, String> auth) async {
+    _client = _GoogleAuthClient(auth);
+    _sheetsApi = sheets.SheetsApi(_client!);
+  }
+
   Future<void> setSpreadsheetUrl(String url) async {
     _spreadsheetUrl = url;
     _spreadsheetId = _extractSpreadsheetId(url);

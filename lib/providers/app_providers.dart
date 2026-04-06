@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/sheets_service.dart';
@@ -28,12 +29,34 @@ class AuthNotifier extends StateNotifier<bool> {
     final gs = ref.read(sheetsServiceProvider);
     final gsi = ref.read(googleSignInProvider);
     await gs.init(gsi);
+    
+    // Auto sign-in if URL is already saved
+    if (gs.spreadsheetUrl != null && gs.spreadsheetUrl!.isNotEmpty) {
+      await signInSilently();
+    }
   }
 
   Future<void> signIn() async {
     final gs = ref.read(sheetsServiceProvider);
     await gs.signIn();
     state = gs.isAuthenticated;
+  }
+
+  Future<void> signInSilently() async {
+    try {
+      final gs = ref.read(sheetsServiceProvider);
+      final gsi = ref.read(googleSignInProvider);
+      
+      // Try silent sign in
+      final user = await gsi.signInSilently();
+      if (user != null) {
+        final auth = await user.authHeaders;
+        await gs.setAuthenticatedClient(auth);
+        state = gs.isAuthenticated;
+      }
+    } catch (e) {
+      debugPrint('Silent sign-in failed: $e');
+    }
   }
 
   Future<void> signOut() async {
